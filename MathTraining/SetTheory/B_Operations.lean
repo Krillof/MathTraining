@@ -121,6 +121,59 @@ example
     exact x_in_empty
 
 
+/-
+###################################################
+#############Infinite unions and intersections#####
+###################################################
+-/
+
+#check mem_iUnion -- Use as def
+#check mem_iInter -- Use as def
+
+#check inter_iUnion
+example
+  {α I : Type*}
+  (A : I → Set α)
+  (s : Set α)
+  : (s ∩ ⋃ i, A i) = ⋃ i, A i ∩ s := by
+  ext x
+  simp only [mem_inter_iff, mem_iUnion]
+  constructor
+  · rintro ⟨xs, ⟨i, xAi⟩⟩
+    exact ⟨i, xAi, xs⟩
+  rintro ⟨i, xAi, xs⟩
+  exact ⟨xs, ⟨i, xAi⟩⟩
+
+#check inter_iInter
+example
+  {α I : Type*}
+  (A : I → Set α)
+  (s : Set α)
+  : (s ∩ ⋂ i, A i) = ⋂ i, A i ∩ s := by
+  sorry
+
+
+
+example
+  {α I : Type*}
+  (A B : I → Set α)
+  : (⋂ i, A i ∩ B i) = (⋂ i, A i) ∩ ⋂ i, B i := by
+  ext x
+  simp only [mem_inter_iff, mem_iInter]
+  constructor
+  · intro h
+    constructor
+    · intro i
+      exact (h i).1
+    intro i
+    exact (h i).2
+  rintro ⟨h1, h2⟩ i
+  constructor
+  · exact h1 i
+  exact h2 i
+
+#check sUnion_subset
+#check subset_sInter
 
 /-
 ###################################################
@@ -211,6 +264,9 @@ theorem my_subset_univ
   exact x_in_empty
 
 
+#check mem_of_subset_of_mem
+
+
 /-
 ###################################################
 #############Nonempty##############################
@@ -230,48 +286,3 @@ example
   . intro s_minus_t_ne_emptyset
     contrapose! s_minus_t_ne_emptyset
     sorry
-
-
-
-
-
-
-/-
-###################################################
-#############Infinite unions and intersections#####
-###################################################
--/
-
-example
-  {α I : Type*}
-  (A : I → Set α)
-  (s : Set α)
-  : (s ∩ ⋃ i, A i) = ⋃ i, A i ∩ s := by
-  ext x
-  simp only [mem_inter_iff, mem_iUnion]
-  constructor
-  · rintro ⟨xs, ⟨i, xAi⟩⟩
-    exact ⟨i, xAi, xs⟩
-  rintro ⟨i, xAi, xs⟩
-  exact ⟨xs, ⟨i, xAi⟩⟩
-
-example
-  {α I : Type*}
-  (A B : I → Set α)
-  : (⋂ i, A i ∩ B i) = (⋂ i, A i) ∩ ⋂ i, B i := by
-  ext x
-  simp only [mem_inter_iff, mem_iInter]
-  constructor
-  · intro h
-    constructor
-    · intro i
-      exact (h i).1
-    intro i
-    exact (h i).2
-  rintro ⟨h1, h2⟩ i
-  constructor
-  · exact h1 i
-  exact h2 i
-
-#check sUnion_subset
-#check subset_sInter

@@ -71,8 +71,16 @@ def Surjective (f : α → β) : Prop :=
 
 
 #check Function.Bijective
+/-
+/-- A function is called bijective
+  if it is both injective and surjective. -/
+def Bijective (f : α → β) :=
+  Injective f ∧ Surjective f
+-/
 
-
+/-
+ f ⁻¹' is an inverse image
+-/
 example
   {α β : Type*} (f : α → β) (u  : Set β)
  : f ⁻¹' u = {x | f x ∈ u} := by
@@ -82,11 +90,11 @@ example
 example
   {α β : Type*} (f : α → β) (u v : Set β)
  : f ⁻¹' (u ∩ v) = f ⁻¹' u ∩ f ⁻¹' v := by
-  ext
+  ext x
   rfl
 
 /-
-And f '' is an image
+ f '' is an image
 -/
 example
   {α β : Type*} (f : α → β) (s : Set α)
