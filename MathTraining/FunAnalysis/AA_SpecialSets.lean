@@ -90,18 +90,6 @@ def IsClopen (s : Set X) : Prop :=
 -/
 
 
-
-
-
-#check mem_interior
--- above is alternative definition of an interior
-
-#check interior_eq_iff_isOpen
-
-#check interior_interior
-
-#check interior_inter
-
 #check Set.mem_of_subset_of_mem
 #check isOpen_interior
 theorem my_isOpen_interior
@@ -126,6 +114,29 @@ theorem my_isOpen_interior
   exact t_open
 
 
+#check mem_interior
+-- above is alternative definition of an interior
+theorem my_mem_interior
+  {X : Type*}
+  {x : X}
+  {A : Set X}
+  [TopologicalSpace X]
+  : x ∈ interior A ↔ ∃ B ⊆ A, IsOpen B ∧ x ∈ B
+  := by
+  constructor
+  . intro x_in_int_A
+    /-
+    x_in_int_A : x ∈ interior A
+    ⊢ ∃ B ⊆ A, IsOpen B ∧ x ∈ B
+    -/
+    sorry
+  . intro h
+    /-
+    h : ∃ B ⊆ A, IsOpen B ∧ x ∈ B
+    ⊢ x ∈ interior A
+    -/
+    sorry
+
 
 #check interior_subset
 theorem my_interior_subset
@@ -136,12 +147,111 @@ theorem my_interior_subset
   -- So any x ∈ interior A must be in one of these open subsets, which are all contained in A
   intro x hx
   -- By definition of interior, hx means there exists an open set t with x ∈ t and t ⊆ A
-  rw [mem_interior] at hx
+  rw [my_mem_interior] at hx
   -- Get the witness t from the existential
   rcases hx with ⟨t, ⟨t_subset_A, _, x_in_t⟩⟩
   -- Since x ∈ t and t ⊆ A, we have x ∈ A
   exact Set.mem_of_subset_of_mem t_subset_A x_in_t
 
+
+
+#check interior_mono
+theorem my_interior_mono
+  {X : Type*} [TopologicalSpace X]
+    {A B : Set X} (h : B ⊆ A)
+    : interior B ⊆ interior A
+  := by
+  by_contra int_B_not_subset_int_A
+  dsimp [Set.subset_def] at int_B_not_subset_int_A
+  push_neg at int_B_not_subset_int_A
+  /-
+    A B : Set X
+    h : B ⊆ A
+    int_B_not_subset_int_A : ∃ x ∈ interior B, x ∉ interior A
+    ⊢ False
+  -/
+  obtain ⟨x, ⟨x_in_int_B, x_not_in_int_A⟩⟩
+    := int_B_not_subset_int_A
+  /-
+    x : X
+    x_in_int_B : x ∈ interior B
+    x_not_in_int_A : x ∉ interior A
+  -/
+  rw [my_mem_interior] at x_not_in_int_A
+  push_neg at x_not_in_int_A
+  /-
+  x_not_in_int_A : ∀ t ⊆ A, IsOpen t → x ∉ t
+  -/
+  have h1 : interior B ⊆ A:= by
+    exact Set.Subset.trans my_interior_subset h
+  have h2 : x ∉ interior B := by
+    specialize x_not_in_int_A (interior B) h1 my_isOpen_interior
+    exact x_not_in_int_A
+  contradiction
+
+
+
+
+
+#check interior_eq_iff_isOpen
+theorem my_interior_eq_iff_isOpen
+  {X : Type*}
+  {A : Set X}
+  [TopologicalSpace X]
+  : interior A = A ↔ IsOpen A
+  := by
+  constructor
+  . intro int_A_eq_A
+    /-
+    int_A_eq_A : interior A = A
+    ⊢ IsOpen A
+    -/
+    rw [← int_A_eq_A]
+    apply my_isOpen_interior
+  . intro is_open_A
+    /-
+    is_open_A : IsOpen A
+    ⊢ interior A = A
+    -/
+    ext x
+    /-
+    x : X
+    ⊢ x ∈ interior A ↔ x ∈ A
+    -/
+    constructor
+    . intro x_in_int_A
+      /-
+      x_in_int_A : x ∈ interior A
+      ⊢ x ∈ A
+      -/
+      apply my_interior_subset
+      /-
+      ⊢ x ∈ interior A
+      -/
+      exact x_in_int_A
+    . intro x_in_A
+      /-
+      is_open_A : IsOpen A
+      x : X
+      x_in_A : x ∈ A
+      ⊢ x ∈ interior A
+      -/
+      rw [my_mem_interior]
+      -- ⊢ ∃ t ⊆ A, IsOpen t ∧ x ∈ t
+      use A -- that is end
+
+
+#check interior_interior
+theorem my_interior_interior
+  {X : Type*}
+  {A : Set X}
+  [TopologicalSpace X]
+  : interior (interior A) = interior A
+  := by
+  sorry
+
+
+#check interior_inter
 
 #check isOpen_iff_mem_nhds
 -- above is alternative definition of an open set
@@ -170,43 +280,84 @@ theorem my_isOpen_iff_mem_nhds
     h : ∀ x ∈ A, A ∈ 𝓝 x
     ⊢ IsOpen A
     -/
+    apply my_interior_eq_iff_isOpen.mp
+    /-
+    h : ∀ x ∈ A, A ∈ 𝓝 x
+    ⊢ interior A = A
+    -/
+    ext x
+    specialize h x
+    /-
+    h : x ∈ A → A ∈ 𝓝 x
+    ⊢ x ∈ interior A ↔ x ∈ A
+    -/
+    constructor
+    . intro x_in_int_A
+      apply Set.mem_of_subset_of_mem my_interior_subset
+      exact x_in_int_A
+    . intro x_in_A
+      specialize h x_in_A
+      /-
+      x_in_A : x ∈ A
+      h : A ∈ 𝓝 x
+      ⊢ x ∈ interior A
+      -/
+      rw [mem_nhds_iff] at h
+      -- h : ∃ t ⊆ A, IsOpen t ∧ x ∈ t
+      obtain ⟨B, ⟨h1,h2,h3⟩⟩ := h
+      /-
+      B : Set X
+      h1 : B ⊆ A
+      h2 : IsOpen B
+      h3 : x ∈ B
+      ⊢ x ∈ interior A
+      -/
+      have h4 : interior B = B := by
+        apply my_interior_eq_iff_isOpen.mpr h2
+      rw [← h4] at h3
+      -- h3 : x ∈ interior B
+      have h5 : interior B ⊆ interior A := by
+        apply my_interior_mono h1
+      apply Set.mem_of_subset_of_mem h5 h3
 
-    sorry
 
 
-#check interior_mono
-theorem my_interior_mono
-  {X : Type*} [TopologicalSpace X]
-    {A B : Set X} (h : B ⊆ A)
-    : interior B ⊆ interior A
+
+-- Alternative definition for a frontier:
+--#check ????
+theorem whereis__mem_frontier
+  {X : Type*}
+  {x : X}
+  {A : Set X}
+  [TopologicalSpace X]
+  : x ∈ frontier A
+    ↔
+    ∀ B ∈ 𝓝 x,
+    (B ∩ A).Nonempty
+    ∧ (B ∩ Aᶜ).Nonempty
   := by
-  by_contra int_B_not_subset_int_A
-  dsimp [Set.subset_def] at int_B_not_subset_int_A
-  push_neg at int_B_not_subset_int_A
-  /-
-    A B : Set X
-    h : B ⊆ A
-    int_B_not_subset_int_A : ∃ x ∈ interior B, x ∉ interior A
-    ⊢ False
-  -/
-  obtain ⟨x, ⟨x_in_int_B, x_not_in_int_A⟩⟩
-    := int_B_not_subset_int_A
-  /-
-    x : X
-    x_in_int_B : x ∈ interior B
-    x_not_in_int_A : x ∉ interior A
-  -/
-  rw [mem_interior] at x_not_in_int_A
-  push_neg at x_not_in_int_A
-  /-
-  x_not_in_int_A : ∀ t ⊆ A, IsOpen t → x ∉ t
-  -/
-  have h1 : interior B ⊆ A:= by
-    exact Set.Subset.trans my_interior_subset h
-  have h2 : x ∉ interior B := by
-    specialize x_not_in_int_A (interior B) h1 my_isOpen_interior
-    exact x_not_in_int_A
-  contradiction
+    constructor
+    . intro x_in_fr_A B B_in_nhds_x
+      /-
+      B : Set X
+      B_in_nhds_x : B ∈ 𝓝 x
+      ⊢ (B ∩ A).Nonempty ∧ (B ∩ Aᶜ).Nonempty
+      -/
+      constructor
+      . -- ⊢ (B ∩ A).Nonempty
+        sorry
+      . sorry
+
+    . intro h
+      /-
+      h : ∀ B ∈ 𝓝 x, (B ∩ A).Nonempty ∧ (B ∩ Aᶜ).Nonempty
+      ⊢ x ∈ frontier A
+      -/
+      sorry
+
+
+
+
 
 
 
