@@ -114,6 +114,38 @@ theorem my_isOpen_interior
   exact t_open
 
 
+
+#check interior_subset
+theorem my_interior_subset
+  {X : Type*} [TopologicalSpace X]
+  {A : Set X}
+  : interior A ⊆ A := by
+  intro x x_in_int_A
+  dsimp [interior] at x_in_int_A
+  /-
+  A : Set X
+  x : X
+  x_in_int_A : x ∈ ⋃₀ {t | IsOpen t ∧ t ⊆ A}
+  ⊢ x ∈ A
+  -/
+  rw [Set.mem_sUnion] at x_in_int_A
+  -- x_in_int_A : ∃ t ∈ {t | IsOpen t ∧ t ⊆ A}, x ∈ t
+  obtain ⟨t, t_in_set, x_in_t⟩ := x_in_int_A
+  /-
+  t : Set X
+  t_in_set : t ∈ {t | IsOpen t ∧ t ⊆ A}
+  x_in_t : x ∈ t
+  -/
+  dsimp at t_in_set
+  -- t_in_set : IsOpen t ∧ t ⊆ A
+  obtain ⟨is_open_t, t_subs_A⟩ := t_in_set
+  /-
+  is_open_t : IsOpen t
+  t_subs_A : t ⊆ A
+  -/
+  apply Set.mem_of_subset_of_mem t_subs_A x_in_t
+
+
 #check mem_interior
 -- above is alternative definition of an interior
 theorem my_mem_interior
@@ -129,29 +161,40 @@ theorem my_mem_interior
     x_in_int_A : x ∈ interior A
     ⊢ ∃ B ⊆ A, IsOpen B ∧ x ∈ B
     -/
-    sorry
+    use interior A
+    -- ⊢ interior A ⊆ A
+    --  ∧ IsOpen (interior A)
+    --  ∧ x ∈ interior A
+    constructor
+    . exact my_interior_subset
+    . constructor
+      . exact my_isOpen_interior
+      . exact x_in_int_A
   . intro h
     /-
     h : ∃ B ⊆ A, IsOpen B ∧ x ∈ B
     ⊢ x ∈ interior A
     -/
-    sorry
+    obtain ⟨B, B_subs_A, is_open_B, x_in_B⟩ := h
+    /-
+    B : Set X
+    B_subs_A : B ⊆ A
+    is_open_B : IsOpen B
+    x_in_B : x ∈ B
+    -/
+    dsimp [interior]
+    -- ⊢ x ∈ ⋃₀ {t | IsOpen t ∧ t ⊆ A}
+    rw [Set.mem_sUnion]
+    use B
+    -- ⊢ B ∈ {t | IsOpen t ∧ t ⊆ A} ∧ x ∈ B
+    constructor
+    . simp
+      -- ⊢ IsOpen B ∧ B ⊆ A
+      constructor
+      . exact is_open_B
+      . exact B_subs_A
+    . exact x_in_B
 
-
-#check interior_subset
-theorem my_interior_subset
-  {X : Type*} [TopologicalSpace X]
-  {A : Set X}
-  : interior A ⊆ A := by
-  -- The interior is defined as the union of all open sets contained in A
-  -- So any x ∈ interior A must be in one of these open subsets, which are all contained in A
-  intro x hx
-  -- By definition of interior, hx means there exists an open set t with x ∈ t and t ⊆ A
-  rw [my_mem_interior] at hx
-  -- Get the witness t from the existential
-  rcases hx with ⟨t, ⟨t_subset_A, _, x_in_t⟩⟩
-  -- Since x ∈ t and t ⊆ A, we have x ∈ A
-  exact Set.mem_of_subset_of_mem t_subset_A x_in_t
 
 
 
@@ -240,7 +283,6 @@ theorem my_interior_eq_iff_isOpen
       -- ⊢ ∃ t ⊆ A, IsOpen t ∧ x ∈ t
       use A -- that is end
 
-
 #check interior_interior
 theorem my_interior_interior
   {X : Type*}
@@ -248,7 +290,27 @@ theorem my_interior_interior
   [TopologicalSpace X]
   : interior (interior A) = interior A
   := by
-  sorry
+  ext x
+  constructor
+  . apply Set.mem_of_subset_of_mem my_interior_subset
+  . intro x_in_int_A
+    apply my_mem_interior.mpr
+    use interior A
+    /-
+    ⊢ interior A ⊆ interior A
+      ∧ IsOpen (interior A)
+      ∧ x ∈ interior A
+    -/
+    constructor
+    . -- ⊢ interior A ⊆ interior A
+      exact Set.Subset.refl (interior A)
+    . constructor
+      . -- ⊢ IsOpen (interior A)
+        exact my_isOpen_interior
+      . -- ⊢ x ∈ interior A
+        exact x_in_int_A
+
+
 
 
 #check interior_inter
@@ -359,7 +421,13 @@ theorem whereis__mem_frontier
 
 
 
-
+#check isClosed_closure
+theorem my_isClosed_closure
+  {X : Type*} [TopologicalSpace X]
+  {A : Set X}
+  : IsClosed (closure A) := by
+  dsimp [closure]
+  sorry
 
 #check subset_closure
 theorem my_subset_closure
@@ -374,6 +442,6 @@ theorem my_subset_closure
 
 #check closure_closure
 
-#check isClosed_closure
+
 
 #check closure_eq_iff_isClosed

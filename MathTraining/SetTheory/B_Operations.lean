@@ -152,7 +152,8 @@ example
   : (s ∩ ⋂ i, A i) = ⋂ i, A i ∩ s := by
   sorry
 
-
+#check mem_sUnion
+#check mem_sInter
 
 example
   {α I : Type*}
