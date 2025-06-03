@@ -95,9 +95,21 @@ example {α : Type*} (s t u : Set α)
 #check union_inter_distrib_right
 
 
-
 #check inter_union_distrib_left
 #check inter_union_distrib_right
+
+
+#check union_comm
+#check inter_comm
+
+#check union_assoc
+#check inter_assoc
+
+#check union_empty
+#check inter_empty
+
+#check union_univ
+#check inter_univ
 
 
 #check compl_def
@@ -267,6 +279,32 @@ theorem my_subset_univ
 
 #check mem_of_subset_of_mem
 
+#check union_eq_left
+#check union_eq_right
+
+
+/-
+###################################################
+#############Set difference########################
+###################################################
+-/
+
+#check Set.diff_eq
+
+#check diff_self
+#check diff_empty
+
+#check diff_diff
+#check diff_diff_comm
+#check diff_eq_empty
+
+#check diff_iInter
+#check diff_inter
+
+#check diff_iUnion
+
+#check diff_subset_comm
+
 
 /-
 ###################################################
@@ -274,16 +312,17 @@ theorem my_subset_univ
 ###################################################
 -/
 
+
 #check Set.Nonempty
-example
-  {α : Type*} (s t : Set α)
-  : ¬(s ⊆ t) ↔ Set.Nonempty (s \ t)
-  := by
-  constructor
-  . intro not_s_subset_t
-    contrapose! not_s_subset_t
-    intro x x_in_s
-    sorry
-  . intro s_minus_t_ne_emptyset
-    contrapose! s_minus_t_ne_emptyset
-    sorry
+#check nonempty_def
+
+
+
+#check nonempty_iff_ne_empty
+
+#check Nonempty.mono
+#check nonempty_of_mem
+#check diff_nonempty
+
+#check nonempty_sInter
+#check nonempty_sUnion
